@@ -1,0 +1,25 @@
+{{ template "head.html" }}
+
+<head>
+    <title>{{.Title}}</title>
+</head>
+
+<body>
+
+{{ template "navbar.html" }}
+
+<!-- Header -->
+<header class="w3-container w3-red w3-center" style="padding:128px 16px">
+    <h1 class="w3-margin w3-jumbo">Creating a new page</h1>
+</header>
+
+<form action="/createNew/" class="w3-padding-large w3-large w3-margin-top w3-center" method="POST">
+    <div>Title:<br><input type="text" name="new_title"><br></div>
+    <div><textarea name="new_body" rows="20" cols="80"></textarea></div>
+    <div><input type="submit" class="w3-button w3-black w3-padding-large w3-large w3-margin-top" value="Save"></div>
+</form>
+</body>
+
+{{ template "footer.html" }}
+
+</html>
