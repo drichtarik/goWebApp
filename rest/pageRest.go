@@ -1,4 +1,21 @@
-package restAPI
+package rest
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/drichtarik/goWebApp/handlers"
+	"github.com/gorilla/mux"
+	"net/http"
+)
+
+func getPagesEndpoint(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: goGetPagesEndpoint")
+	json.NewEncoder(w).Encode(handlers.Pages)
+}
+
+func BootAllRestApiHandlers(router *mux.Router) {
+	http.HandleFunc("/pages/", getPagesEndpoint)
+}
 
 /**
 func GetPagesEndpoint(w http.ResponseWriter, r *http.Request) {
