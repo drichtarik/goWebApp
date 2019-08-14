@@ -9,7 +9,7 @@ import (
 )
 
 var templates = template.Must(template.ParseFiles("template/edit.html", "template/view.html", "template/create.html", "template/static/head.html", "template/static/navbar.html", "template/static/footer.html"))
-var validPath = regexp.MustCompile("^/(edit|save|view|create)/([a-zA-Z0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|savePage|view|create)/([a-zA-Z0-9]+)$")
 
 type Page struct {
 	Title string `json:"title,omitempty"`
@@ -18,7 +18,7 @@ type Page struct {
 
 var Pages []Page
 
-func (p *Page) save() error {
+func (p *Page) savePage() error {
 	filename := p.Title + ".txt"
 	Pages = append(Pages, *p)
 	return ioutil.WriteFile("data/"+filename, p.Body, 0600)
@@ -43,7 +43,7 @@ func CacheDefaultPages() []Page {
 	return Pages
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+func pageRenderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -51,7 +51,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	}
 }
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+func pageMakeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
@@ -62,32 +62,32 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	}
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request, title string) {
+func pageRootHandler(w http.ResponseWriter, r *http.Request, title string) {
 	myTitle := "FrontPage"
 	http.Redirect(w, r, "/view/"+myTitle, http.StatusFound)
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+func pageViewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-	renderTemplate(w, "view", p)
+	pageRenderTemplate(w, "view", p)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+func pageEditHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
 		p = &Page{Title: title}
 	}
-	renderTemplate(w, "edit", p)
+	pageRenderTemplate(w, "edit", p)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+func pageSaveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
-	err := p.save()
+	err := p.savePage()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -95,18 +95,18 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-func createHandler(w http.ResponseWriter, r *http.Request) {
+func pageCreateHandler(w http.ResponseWriter, r *http.Request) {
 	p := &Page{}
-	renderTemplate(w, "create", p)
+	pageRenderTemplate(w, "create", p)
 }
 
-func createNewHandler(w http.ResponseWriter, r *http.Request) {
+func pageCreateNewHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	title := r.Form["new_title"]
 	body := r.Form["new_body"]
 
 	p := &Page{title[0], []byte(body[0])}
-	err := p.save()
+	err := p.savePage()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -116,10 +116,10 @@ func createNewHandler(w http.ResponseWriter, r *http.Request) {
 
 func BootAllPageHandlers(router *mux.Router) {
 	CacheDefaultPages()
-	http.HandleFunc("/", makeHandler(rootHandler))
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.HandleFunc("/create/", createHandler)
-	http.HandleFunc("/createNew/", createNewHandler)
+	http.HandleFunc("/", pageMakeHandler(pageRootHandler))
+	http.HandleFunc("/view/", pageMakeHandler(pageViewHandler))
+	http.HandleFunc("/edit/", pageMakeHandler(pageEditHandler))
+	http.HandleFunc("/save/", pageMakeHandler(pageSaveHandler))
+	http.HandleFunc("/create/", pageCreateHandler)
+	http.HandleFunc("/createNew/", pageCreateNewHandler)
 }

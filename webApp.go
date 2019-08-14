@@ -10,7 +10,9 @@ import (
 
 func main() {
 	muxRouter := mux.NewRouter().StrictSlash(true)
-	handlers.BootAllPageHandlers(muxRouter)
-	rest.BootAllRestApiHandlers(muxRouter)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	//handlers.BootAllPageHandlers(muxRouter)
+	handlers.BootAllArticleHandlers(muxRouter)
+	rest.BootAllPagesRestApiHandlers(muxRouter)
+	rest.BootAllArticlesRestApiHandlers(muxRouter)
+	log.Fatal(http.ListenAndServe(":8080", muxRouter))
 }
