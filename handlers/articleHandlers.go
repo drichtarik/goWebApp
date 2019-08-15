@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"html/template"
 	"net/http"
@@ -58,6 +59,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("View handler called 1")
 	title, err := getTitle(w, r)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -123,9 +125,9 @@ func createNewHandler(w http.ResponseWriter, r *http.Request) {
 func BootAllArticleHandlers(router *mux.Router) {
 	populateArticles()
 	router.HandleFunc("/", rootHandler)
-	router.HandleFunc("/view/", viewHandler)
-	router.HandleFunc("/edit/", editHandler)
-	router.HandleFunc("/save/", saveHandler)
+	router.HandleFunc("/view/{name}", viewHandler)
+	router.HandleFunc("/edit/{name}", editHandler)
+	router.HandleFunc("/save/{name}", saveHandler)
 	router.HandleFunc("/create/", createHandler)
 	router.HandleFunc("/createNew/", createNewHandler)
 }
